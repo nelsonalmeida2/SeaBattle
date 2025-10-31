@@ -148,5 +148,3 @@ The application's logic is contained within a single Kotlin file.
   * **License**: MIT
 
 -----
-
-Would you like me to suggest some improvements to the Kotlin code itself or help you add new features?
