@@ -1,6 +1,9 @@
 import java.io.File
 
+/** The alphabet string used for column coordinates. */
 const val alfabeto = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+/** Constants representing the different menu states in the game. */
 const val MENU_PRINCIPAL = 100
 const val MENU_DEFINIR_TABULEIRO = 101
 const val MENU_DEFINIR_NAVIOS = 102
@@ -8,6 +11,8 @@ const val MENU_JOGAR = 103
 const val MENU_LER_FICHEIRO = 104
 const val MENU_GRAVAR_FICHEIRO = 105
 const val SAIR = 106
+
+/** Global variables holding the game state, including board dimensions and the four game boards. */
 var numLinhas = -1
 var numColunas = -1
 var tabuleiroHumano: Array<Array<Char?>> = emptyArray()
@@ -15,7 +20,13 @@ var tabuleiroComputador: Array<Array<Char?>> = emptyArray()
 var tabuleiroPalpitesDoHumano: Array<Array<Char?>> = emptyArray()
 var tabuleiroPalpitesDoComputador: Array<Array<Char?>> = emptyArray()
 
-//TODO Legenda
+/**
+ * Checks if the given board dimensions are valid for the game.
+ *
+ * @param numLinhas The number of rows.
+ * @param numColunas The number of columns.
+ * @return True if the dimensions are one of the allowed sizes (4x4, 5x5, 7x7, 8x8, 10x10), false otherwise.
+ */
 fun tamanhoTabuleiroValido(numLinhas:Int, numColunas: Int): Boolean {
     return when {
         numLinhas == 4 && numColunas == 4 -> true
@@ -27,7 +38,14 @@ fun tamanhoTabuleiroValido(numLinhas:Int, numColunas: Int): Boolean {
     }
 }
 
-//TODO Legenda
+/**
+ * Parses a string coordinate (e.g., "3,G" or "10,A") into a Pair of (row, column) indices.
+ *
+ * @param cordenadas The coordinate string.
+ * @param numLinhas The total number of rows on the board (for validation).
+ * @param numColunas The total number of columns on the board (for validation).
+ * @return A Pair(row, column) as 1-based indices, or null if the format is invalid or out of bounds.
+ */
 fun processaCoordenadas(cordenadas: String, numLinhas:Int, numColunas:Int):Pair<Int,Int>? {
     if (cordenadas.length == 3 || cordenadas.length == 4 && numLinhas in (1..26) && numColunas in(1..26)){
         var numeroValidacao = cordenadas[0].toString().toIntOrNull()
@@ -58,7 +76,12 @@ fun processaCoordenadas(cordenadas: String, numLinhas:Int, numColunas:Int):Pair<
     return null
 }
 
-//TODO Legenda
+/**
+ * Creates the horizontal header string (e.g., "A | B | C") for the game board.
+ *
+ * @param numColunas The total number of columns.
+ * @return The formatted header string.
+ */
 fun criaLegendaHorizontal(numColunas: Int): String {
     var count = 0
     var sequencia = ""
@@ -72,7 +95,14 @@ fun criaLegendaHorizontal(numColunas: Int): String {
     return sequencia
 }
 
-//TODO ENRICO
+/**
+ * Generates a string representation of an empty game board (terrain) with row and column headers.
+ * (Note: This function appears to be unused in the final game loop; `obtemMapa` is used instead).
+ *
+ * @param numLinhas The number of rows.
+ * @param numColunas The number of columns.
+ * @return A multi-line string representing the empty board.
+ */
 fun criaTerreno(numLinhas:Int, numColunas: Int): String {
     var countNumLinhas = 0
     var sequenciaNumLinhas = "| ${criaLegendaHorizontal(numColunas)} |\n"
@@ -93,7 +123,13 @@ fun criaTerreno(numLinhas:Int, numColunas: Int): String {
     return  sequenciaNumLinhas
 }
 
-//TODO Legenda
+/**
+ * Determines the number of ships of each type based on the board's dimensions.
+ *
+ * @param numLinhas The number of rows.
+ * @param numColunas The number of columns.
+ * @return An array [submarines, destroyers, tankers, carriers]. Returns an empty array if dimensions are invalid.
+ */
 fun calculaNumNavios(numLinhas:Int, numColunas: Int): Array<Int>{
     return when {
         numLinhas == 4 && numColunas == 4 ->arrayOf(2,0,0,0)
@@ -105,7 +141,13 @@ fun calculaNumNavios(numLinhas:Int, numColunas: Int): Array<Int>{
     }
 }
 
-//TODO Legenda
+/**
+ * Creates a new, empty game board (a 2D array) of the given dimensions, filled with nulls.
+ *
+ * @param numLinhas The number of rows.
+ * @param numColunas The number of columns.
+ * @return A 2D array of `Char?` initialized to null.
+ */
 fun criaTabuleiroVazio(numLinhas:Int, numColunas: Int): Array<Array<Char?>>{
     val tabuleiroVazio = Array(numLinhas) { arrayOfNulls<Char>(numColunas) }
     for (linha in 0.. numLinhas-1) {
@@ -116,7 +158,14 @@ fun criaTabuleiroVazio(numLinhas:Int, numColunas: Int): Array<Array<Char?>>{
     return tabuleiroVazio
 }
 
-//TODO Legenda
+/**
+ * Checks if a given (row, column) coordinate (1-based) is within the bounds of the board.
+ *
+ * @param tabuleiro The game board array.
+ * @param numLinhas The row to check (1-based).
+ * @param numColunas The column to check (1-based).
+ * @return True if the coordinate is on the board, false otherwise.
+ */
 fun coordenadaContida(tabuleiro:Array<Array<Char?>>,numLinhas:Int, numColunas: Int):Boolean {
     if (numLinhas in 1 ..tabuleiro.size && numColunas in 1 .. tabuleiro.size) {
         return true
@@ -126,20 +175,25 @@ fun coordenadaContida(tabuleiro:Array<Array<Char?>>,numLinhas:Int, numColunas: I
     }
 }
 
-//TODO Legenda
-fun limparCoordenadasVazias(arrayDePairs:Array<Pair<Int,Int>>):Array<Pair<Int,Int>>{ //Todo arrumada e funcionaso falta mandar no drop
+/**
+ * Filters an array of coordinate pairs, returning a new array containing only the pairs that are not (0,0).
+ *
+ * @param arrayDePairs The input array of coordinate pairs, which may contain (0,0) placeholders.
+ * @return A new array containing only the valid coordinates.
+ */
+fun limparCoordenadasVazias(arrayDePairs:Array<Pair<Int,Int>>):Array<Pair<Int,Int>>{
     var contagem = 0
     var count = 0
-    for(elemento in 0 .. arrayDePairs.size-1){ //verifica quantas cordenadas vazias tem
+    for(elemento in 0 .. arrayDePairs.size-1){ // Count non-empty coordinates
         if(arrayDePairs[elemento].first != 0 && arrayDePairs[elemento].second!=0){
             contagem ++
         }
     }
 
-    val cordenadas = Array(contagem){Pair(0,0)} //inicializo o array de retorno com o tamnaho de cordenadas nao vazias
+    val cordenadas = Array(contagem){Pair(0,0)} // Initialize return array with the correct size
 
-    for(elemento in 0 .. arrayDePairs.size-1){ // roda todas as cordenadas
-        if(arrayDePairs[elemento].first != 0 && arrayDePairs[elemento].second!=0){ // se nao for vazio ira colocar no array de retorno
+    for(elemento in 0 .. arrayDePairs.size-1){ // Populate the return array
+        if(arrayDePairs[elemento].first != 0 && arrayDePairs[elemento].second!=0){ // If not empty, add to return array
             cordenadas[count] = arrayDePairs[elemento]
             count ++
         }
@@ -147,8 +201,14 @@ fun limparCoordenadasVazias(arrayDePairs:Array<Pair<Int,Int>>):Array<Pair<Int,In
     return cordenadas
 }
 
-//TODO Legenda
-fun juntarCoordenadas(array:Array<Pair<Int,Int>>,pair:Array<Pair<Int,Int>>):Array<Pair<Int,Int>>{//Todo arrumada e funcionaso falta mandar no drop
+/**
+ * Merges two arrays of coordinate pairs into a single new array.
+ *
+ * @param array The first array of pairs.
+ * @param pair The second array of pairs.
+ * @return A new array containing all elements from both input arrays.
+ */
+fun juntarCoordenadas(array:Array<Pair<Int,Int>>,pair:Array<Pair<Int,Int>>):Array<Pair<Int,Int>>{
     val arraySomado = Array(array.size+pair.size){Pair(0,0)}
     var contagem =0
     for (elemto in 0 ..array.size -1){
@@ -162,7 +222,16 @@ fun juntarCoordenadas(array:Array<Pair<Int,Int>>,pair:Array<Pair<Int,Int>>):Arra
     return arraySomado
 }
 
-//Gera as coordenadas do navio, mas se o navio não estiver dentro do tabuleiro retorna um array vazio
+/**
+ * Generates an array of (row, column) pairs for a ship based on its start position, orientation, and dimension.
+ *
+ * @param tabuleiro The game board (used for bounds checking).
+ * @param linha The starting row (1-based).
+ * @param coluna The starting column (1-based).
+ * @param orientacao The orientation ("E", "O", "N", "S").
+ * @param dimensao The length of the ship.
+ * @return An array of coordinate pairs for the ship, or an empty array if the ship goes out of bounds.
+ */
 fun gerarCoordenadasNavio(tabuleiro:Array<Array<Char?>>,linha: Int,coluna: Int,orientacao:String,dimensao:Int): Array<Pair<Int,Int>> {
     val coordenadasNavio=Array<Pair<Int,Int>>(dimensao){Pair(0,0)}
     val empty = emptyArray<Pair<Int,Int>>()
@@ -202,30 +271,40 @@ fun gerarCoordenadasNavio(tabuleiro:Array<Array<Char?>>,linha: Int,coluna: Int,o
     return coordenadasNavio
 }
 
-//Está função gera um array de pairs que consiste na fronteira a volta do navio que está dentro to tabuleiro
+/**
+ * Generates an array of (row, column) pairs representing the 1-tile border/frontier around a ship's potential location.
+ * This is used to prevent ships from touching.
+ *
+ * @param tabuleiro The game board (used for bounds checking).
+ * @param linha The starting row (1-based).
+ * @param coluna The starting column (1-based).
+ * @param orientacao The ship's orientation.
+ * @param dimensao The ship's dimension.
+ * @return An array of coordinate pairs for the border, filtered to be within the board.
+ */
 fun gerarCoordenadasFronteira(tabuleiro:Array<Array<Char?>>,linha: Int,coluna: Int,orientacao:String,dimensao:Int): Array<Pair<Int,Int>> {
     var fronteira = emptyArray<Pair<Int,Int>>()
-    if (dimensao == 1) { //subarino
+    if (dimensao == 1) { // Submarine
         for (linhas in linha -1 .. linha + 1) {
             for (colunas in coluna - 1 .. coluna + dimensao) {
-                if (!(linhas == linha && colunas == coluna)) { // se a coordenada for difrente da posição do navio
+                if (!(linhas == linha && colunas == coluna)) { // If coordinate is not the ship's position
                     if (coordenadaContida(tabuleiro,linhas,colunas)) fronteira += Pair(linhas,colunas)
-                    // insere no array a coordenada se tiver contida no tabuleiro
+                    // Add coordinate to array if it's on the board
                 }
             }
         }
     } else {
-        if (orientacao == "E") { // Navios Compostos direção "E"
+        if (orientacao == "E") { // Composite ships, "E" direction
             for (linhas in linha - 1..linha + 1) {
                 for (colunas in coluna - 1..coluna + dimensao) {
                     if (!(linhas == linha && (colunas in coluna..coluna + dimensao - 1))) {
-                        // se a coordenada for difrente da posição do navio
+                        // If coordinate is not the ship's position
                         if (coordenadaContida(tabuleiro,linhas,colunas)) fronteira += Pair(linhas,colunas)
-                    // insere no array a coordenada se tiver contida no tabuleiro
+                        // Add coordinate to array if it's on the board
                     }
                 }
             }
-        } else if (orientacao == "O") { // Navios Compostos direção "O"
+        } else if (orientacao == "O") { // Composite ships, "O" direction
             for (linhas in linha - 1..linha + 1) {
                 for (colunas in coluna - dimensao..coluna + 1) {
                     if (!(linhas == linha && (colunas in coluna - dimensao + 1..coluna))) {
@@ -233,7 +312,7 @@ fun gerarCoordenadasFronteira(tabuleiro:Array<Array<Char?>>,linha: Int,coluna: I
                     }
                 }
             }
-        } else if (orientacao == "S") { // Navios Compostos direção "S"
+        } else if (orientacao == "S") { // Composite ships, "S" direction
             for (linhas in linha - 1..linha + dimensao) {
                 for (colunas in coluna - 1..coluna + 1) {
                     if (!(colunas == coluna && (linhas in linha..linha + dimensao - 1))) {
@@ -255,7 +334,13 @@ fun gerarCoordenadasFronteira(tabuleiro:Array<Array<Char?>>,linha: Int,coluna: I
     return fronteira
 }
 
-//verifica se as cordenadas estao livre
+/**
+ * Checks if all coordinates in the given array are empty (null) and within bounds on the game board.
+ *
+ * @param tabuleiro The game board.
+ * @param arrayDeCoordenadas The array of coordinate pairs to check.
+ * @return True if all positions are free and valid, false otherwise.
+ */
 fun estaLivre(tabuleiro:Array<Array<Char?>>,arrayDeCoordenadas:Array<Pair<Int,Int>>):Boolean {
     for (elemento in 0..arrayDeCoordenadas.size-1){
         if(!coordenadaContida(tabuleiro,arrayDeCoordenadas[elemento].first,arrayDeCoordenadas[elemento].second)){
@@ -268,7 +353,16 @@ fun estaLivre(tabuleiro:Array<Array<Char?>>,arrayDeCoordenadas:Array<Pair<Int,In
     return true
 }
 
-// Verifica se é possivel inserir o navio e se for possivel insere o no tabuleiro (funciona apenas direção "E") // TODO VER ERRO
+/**
+ * Attempts to insert a ship with a fixed "E" (East) orientation.
+ * Checks for valid placement (ship and frontier) and inserts it.
+ *
+ * @param tabuleiro The game board to modify.
+ * @param linha The starting row (1-based).
+ * @param coluna The starting column (1-based).
+ * @param dimensao The ship's length.
+ * @return True if the ship was successfully placed, false otherwise.
+ */
 fun insereNavioSimples(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, dimensao: Int): Boolean {
     val navio = gerarCoordenadasNavio(tabuleiro, linha, coluna,"E", dimensao)
     val fronteira = gerarCoordenadasFronteira(tabuleiro, linha, coluna,"E", dimensao)
@@ -283,7 +377,17 @@ fun insereNavioSimples(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, 
     return false
 }
 
-// Verifica se é possivel inserir o navio e se for possivel insere o no tabuleiro // TODO VER ERRO
+/**
+ * Attempts to insert a ship with a given orientation.
+ * Checks for valid placement (ship and frontier) and inserts it.
+ *
+ * @param tabuleiro The game board to modify.
+ * @param linha The starting row (1-based).
+ * @param coluna The starting column (1-based).
+ * @param orientacao The ship's orientation ("N", "S", "E", "O").
+ * @param dimensao The ship's length.
+ * @return True if the ship was successfully placed, false otherwise.
+ */
 fun insereNavio(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, orientacao: String, dimensao: Int): Boolean {
     val navio = gerarCoordenadasNavio(tabuleiro, linha, coluna, orientacao, dimensao)
     val fronteira = gerarCoordenadasFronteira(tabuleiro, linha, coluna, orientacao, dimensao)
@@ -298,7 +402,12 @@ fun insereNavio(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int, orienta
     return false
 }
 
-//TODO Enrico acabar
+/**
+ * Populates the computer's game board with a predefined, hardcoded layout of ships based on the board size.
+ *
+ * @param tabuleiroVazio An empty board to be filled.
+ * @param dimensao An array of ship counts (this parameter seems unused, the logic is hardcoded by board size).
+ */
 fun preencheTabuleiroComputador(tabuleiroVazio: Array<Array<Char?>>, dimensao: Array<Int>) {
     val tabuleiro = tabuleiroVazio
     if (tabuleiro.size == 4) {
@@ -358,41 +467,44 @@ fun preencheTabuleiroComputador(tabuleiroVazio: Array<Array<Char?>>, dimensao: A
     tabuleiroComputador = tabuleiro
 }
 
+/**
+ * Checks if the ship part at a given (row, column) on a *guess board* is part of a completely sunk ship.
+ *
+ * @param tabuleiro The guess board.
+ * @param linha The row of the ship part (1-based).
+ * @param coluna The column of the ship part (1-based).
+ * @return True if the entire ship is revealed (sunk), false otherwise.
+ */
 fun navioCompleto(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Boolean {
     val tipoDeBarco = tabuleiro[linha-1][coluna-1].toString().toIntOrNull()
     var contagem = 0
-    //se na propria cordenada nao for igual ao tipo de barco ja retorna falso
+    // If the coordinate isn't a ship part, return false
     if (tabuleiro[linha-1][coluna-1].toString() != tipoDeBarco.toString()){
         return false
     }
-    //se for 1 simplesmente e completo
+    // If it's a submarine ('1'), it's always complete
     if (tabuleiro[linha-1][coluna-1]=='1'){
         return true
     }
-    // para verificar qual o tamanho de navio que tem que ser procurado
+    // Check for other ship types
     for (tamanho in 1 ..4) {
-        // se o tamanho verificar o tipo de barco que estamos procurando ele continua
+        // If the size matches the ship type we're looking for
         if (tamanho == tipoDeBarco) {
-            //ve as linhas do tabuleiro referente a posicao inicial para cima e para baixo tamnho -1
+            // Check vertically
             for (linhaTab in linha-(tamanho-1)..linha+(tamanho-1)) {
-                // verifica se a cordenada esta no tabuleiro
                 if (coordenadaContida(tabuleiro, linhaTab, coluna)) {
-                    //se nas cordenadas tiver o velor do tipo de barco prosegue
                     if (tabuleiro[linhaTab - 1][coluna - 1].toString() == tipoDeBarco.toString()) {
                         contagem++
                     }
                 }
-                //se a contagem for do tamanho do barco ja retorna true
                 if (contagem == tipoDeBarco) {
                     return true
                 }
             }
             contagem=0
-            //ve as colunas do tabuleiro referente a posicao inicial da esquerda para a direita tamnho -1
+            // Check horizontally
             for (colunaTab in coluna-(tamanho-1)..coluna+(tamanho-1)) {
-                // se a cordenada estiver no tabuleiro e as cordenas serem diferentes a cordenadas iniciais prosegue
                 if (coordenadaContida(tabuleiro,linha,colunaTab)) {
-                    //se nas cordenadas tiver o velor do tipo de barco prosegue
                     if (tabuleiro[linha - 1][colunaTab-1].toString() == tipoDeBarco.toString()) {
                         contagem++
                     }
@@ -407,10 +519,17 @@ fun navioCompleto(tabuleiro: Array<Array<Char?>>, linha: Int, coluna: Int): Bool
 }
 
 
-// Se o boolean recebido for true retorna uma representação tabuleiro real e se for false retorna uma representação tabuleiro palpites
+/**
+ * Generates a string array for printing the game board.
+ *
+ * @param tabuleiroEscolhido The board to display (either real or guess).
+ * @param tipoDeTabuleiro `true` shows the real board (with '~' for water).
+ * `false` shows the guess board (with '?', 'X', and special chars for partial/sunk ships).
+ * @return An array of strings, where each string is a printable row of the board.
+ */
 fun obtemMapa(tabuleiroEscolhido: Array<Array<Char?>>, tipoDeTabuleiro: Boolean): Array<String> {
     val mapa = Array(tabuleiroEscolhido.size+1) { "" }
-    if (tipoDeTabuleiro==false) {
+    if (tipoDeTabuleiro==false) { // Guess board
         for (linha in 0 .. tabuleiroEscolhido.size) {
             if (linha == 0) {
                 mapa[linha] = "| ${criaLegendaHorizontal(tabuleiroEscolhido[0].size)} |"
@@ -420,9 +539,9 @@ fun obtemMapa(tabuleiroEscolhido: Array<Array<Char?>>, tipoDeTabuleiro: Boolean)
                     when {
                         tabuleiroEscolhido[linha-1][coluna] == null -> linhaTexto += "| ? "
                         tabuleiroEscolhido[linha-1][coluna] == 'X' -> linhaTexto += "| X "
-                        tabuleiroEscolhido[linha-1][coluna] == '2' && !navioCompleto(tabuleiroEscolhido,linha, coluna+1)  -> linhaTexto += "| \u2082 "
-                        tabuleiroEscolhido[linha-1][coluna] == '3' && !navioCompleto(tabuleiroEscolhido,linha, coluna+1)  -> linhaTexto += "| \u2083 "
-                        tabuleiroEscolhido[linha-1][coluna] == '4' && !navioCompleto(tabuleiroEscolhido,linha, coluna+1)  -> linhaTexto += "| \u2084 "
+                        tabuleiroEscolhido[linha-1][coluna] == '2' && !navioCompleto(tabuleiroEscolhido,linha, coluna+1)  -> linhaTexto += "| \u2082 " // Subscript 2
+                        tabuleiroEscolhido[linha-1][coluna] == '3' && !navioCompleto(tabuleiroEscolhido,linha, coluna+1)  -> linhaTexto += "| \u2083 " // Subscript 3
+                        tabuleiroEscolhido[linha-1][coluna] == '4' && !navioCompleto(tabuleiroEscolhido,linha, coluna+1)  -> linhaTexto += "| \u2084 " // Subscript 4
                         tabuleiroEscolhido[linha-1][coluna] == '1' -> linhaTexto += "| 1 "
                         tabuleiroEscolhido[linha-1][coluna] == '2'&& navioCompleto(tabuleiroEscolhido,linha, coluna+1) -> linhaTexto += "| 2 "
                         tabuleiroEscolhido[linha-1][coluna] == '3' && navioCompleto(tabuleiroEscolhido,linha, coluna+1)-> linhaTexto += "| 3 "
@@ -433,7 +552,7 @@ fun obtemMapa(tabuleiroEscolhido: Array<Array<Char?>>, tipoDeTabuleiro: Boolean)
                 mapa[linha] = linhaTexto
             }
         }
-    } else {
+    } else { // Real board
         for (linha in 0 until tabuleiroEscolhido.size+1) {
             if (linha == 0) {
                 mapa[0] = "| ${criaLegendaHorizontal(tabuleiroEscolhido[0].size)} |"
@@ -457,7 +576,16 @@ fun obtemMapa(tabuleiroEscolhido: Array<Array<Char?>>, tipoDeTabuleiro: Boolean)
     return mapa
 }
 
-//TODO ENRICO
+/**
+ * Processes a shot at the given coordinates.
+ * It updates the `tabuleiroPalpites` (guess board) based on what's on the `tabuleiroReal` (real board)
+ * and returns a message about the result (hit, miss, ship type).
+ *
+ * @param tabuleiroReal The opponent's real board.
+ * @param tabuleiroPalpites The current player's guess board (to be updated).
+ * @param coordenadasTiro The (row, column) pair for the shot.
+ * @return A string message describing the outcome.
+ */
 fun lancarTiro(tabuleiroReal:Array<Array<Char?>>, tabuleiroPalpites:Array<Array<Char?>>, coordenadasTiro: Pair<Int,Int>): String{
     val resposta = arrayOf("Tiro num submarino.","Tiro num contra-torpedeiro.","Tiro num navio-tanque.","Tiro num porta-avioes.","Agua.")
     var palpite = 0
@@ -486,20 +614,31 @@ fun lancarTiro(tabuleiroReal:Array<Array<Char?>>, tabuleiroPalpites:Array<Array<
     return resposta[palpite]
 }
 
-//TODO ENRICO
+/**
+ * Generates a random, valid (row, column) pair for the computer's shot,
+ * ensuring it hasn't shot at that location before.
+ *
+ * @param tabuleiroPalpitesComputador The computer's guess board.
+ * @return A (row, column) pair for the computer's next shot.
+ */
 fun geraTiroComputador(tabuleiroPalpitesComputador:Array<Array<Char?>>):Pair<Int,Int>{
     var tiroComputador = Pair(0,0)
     do {
         val linha = (1..tabuleiroPalpitesComputador.size).random()
         val coluna = (1..tabuleiroPalpitesComputador.size).random()
         tiroComputador = Pair (linha,coluna)
-    }while (tabuleiroPalpitesComputador[linha-1][coluna-1] != null)
+    }while (tabuleiroPalpitesComputador[linha-1][coluna-1] != null) // Keep trying until an empty spot (null) is found
     return tiroComputador
 }
 
-//TODO feito ENRICO
+/**
+ * Counts the number of *completely sunk* ships of a specific dimension on a given guess board.
+ *
+ * @param tabuleiro The guess board.
+ * @param dimensao The ship dimension (1, 2, 3, or 4) to count.
+ * @return The total count of sunk ships of that dimension.
+ */
 fun contarNaviosDeDimensao(tabuleiro: Array<Array<Char?>>, dimensao: Int): Int {
-    // o tipo de barco
     val tipoBarco = dimensao.toString()
     var contagem = 0
     var total = 0
@@ -510,15 +649,15 @@ fun contarNaviosDeDimensao(tabuleiro: Array<Array<Char?>>, dimensao: Int): Int {
         3->{total = todos[2]}
         4->{total = todos[3]}
     }
-    //verifica todas as linhas
+    // Iterate over the entire board
     for (linha in 0 .. tabuleiro.size-1) {
-        //verifica todas as colunas
         for (coluna in 0 .. tabuleiro.size-1) {
-            //se na linha e na coluna e igual ao tipo de barco
+            // If the cell matches the ship type
             if (tabuleiro[linha][coluna].toString() == tipoBarco) {
-                //verifica nas linhas e colunas dadas se o navio esta completo
+                // Check if the ship it belongs to is completely sunk
                 if (navioCompleto(tabuleiro, linha+1, coluna+1)) {
                     contagem++
+                    // This logic avoids overcounting parts of the same ship
                     if (contagem == 2*total&& dimensao == 2){
                         contagem = contagem /2
                     }
@@ -535,23 +674,43 @@ fun contarNaviosDeDimensao(tabuleiro: Array<Array<Char?>>, dimensao: Int): Int {
     return contagem
 }
 
+/**
+ * Checks if a player has won by comparing the number of sunk ships on their
+ * guess board against the total required number of ships.
+ *
+ * @param tabuleiroDePalpites The player's guess board.
+ * @return True if all opponent's ships are sunk, false otherwise.
+ */
 fun venceu(tabuleiroDePalpites:Array<Array<Char?>>):Boolean{
-    //quais os navios do tabuleiro
+    // Get the required number of ships for this board size
     val arrayDeNavios = calculaNumNavios(tabuleiroDePalpites.size,tabuleiroDePalpites.size)
-    //total de barcos
+    // Get total number of ships
     val totalDeBarcos = arrayDeNavios.sum()
-    //count
     var contagem = 0
+    // Count how many ship types have been completely sunk
     for (tamanho in 1 .. 4 ){
         if(contarNaviosDeDimensao(tabuleiroDePalpites,tamanho)==arrayDeNavios[tamanho-1]){
             contagem ++
         }
     }
+    // If all 4 types are complete, the player has won
     if (contagem == 4){
         return true
     }
     return false
 }
+
+/**
+ * Reads one of the four game boards from a specified save file.
+ *
+ * @param nomeDoFicheiro The name of the file to read.
+ * @param tipoDeTabuleiro An integer (1-4) specifying which board to read:
+ * 1: tabuleiroHumano
+ * 2: tabuleiroPalpitesDoHumano
+ * 3: tabuleiroComputador
+ * 4: tabuleiroPalpitesDoComputador
+ * @return The 2D array (board) read from the file.
+ */
 fun lerJogo(nomeDoFicheiro: String, tipoDeTabuleiro: Int): Array<Array<Char?>> {
     val ficheiro = File(nomeDoFicheiro).readLines().toTypedArray()
     val tamanho: Int = if (ficheiro[0][0] == '1') {
@@ -559,14 +718,14 @@ fun lerJogo(nomeDoFicheiro: String, tipoDeTabuleiro: Int): Array<Array<Char?>> {
     } else {
         ficheiro[0][0].toString().toInt()
     }
-    val tabuleiro: Array<Array<Char?>> = Array(tamanho) { Array(tamanho) {null} } // tabuleiro de nulls com as dimensões corretas
-    when (tipoDeTabuleiro) { // criar tabubleiro baseado no que está no ficheiro
+    val tabuleiro: Array<Array<Char?>> = Array(tamanho) { Array(tamanho) {null} } // Empty board of correct size
+    when (tipoDeTabuleiro) { // Create board based on file content
         1 -> { // tabuleiroHumano
             for (linha in 4 until 3 + tamanho+1) {
                 val partes = ficheiro[linha].split(",")
                 for (coluna in 0 until tamanho) {
                     if (partes[coluna] != "") {
-                        tabuleiro[linha - 4][coluna] = partes[coluna][0].toChar() // escreve no tabuleiro o que está no ficheiro
+                        tabuleiro[linha - 4][coluna] = partes[coluna][0].toChar() // Write to board
                     }
                 }
             }
@@ -605,7 +764,15 @@ fun lerJogo(nomeDoFicheiro: String, tipoDeTabuleiro: Int): Array<Array<Char?>> {
     return tabuleiro
 }
 
-//grava o estado de um jogo em um arquivo
+/**
+ * Saves the complete current game state (all four boards) to a text file.
+ *
+ * @param nomeFicheiro The name of the file to create.
+ * @param tabuleiroRealHumano The human's real board.
+ * @param tabuleiroPalpitesHumano The human's guess board.
+ * @param tabuleiroRealComputador The computer's real board.
+ * @param tabuleiroPalpitesComputador The computer's guess board.
+ */
 fun gravarJogo(nomeFicheiro: String,tabuleiroRealHumano:Array<Array<Char?>>,
                tabuleiroPalpitesHumano:Array<Array<Char?>>,
                tabuleiroRealComputador:Array<Array<Char?>>,
@@ -662,7 +829,11 @@ fun gravarJogo(nomeFicheiro: String,tabuleiroRealHumano:Array<Array<Char?>>,
     printer.close()
 }
 
-//TODO Legenda
+/**
+ * Displays the main menu, reads user input, and returns the constant for the selected menu state.
+ *
+ * @return The integer constant representing the next menu state (e.g., MENU_PRINCIPAL, SAIR).
+ */
 fun menuPrincipal():Int {
     println("\n> > Batalha Naval < <\n")
     println("1 - Definir Tabuleiro e Navios")
@@ -688,7 +859,12 @@ fun menuPrincipal():Int {
     }
 }
 
-//TODO Legenda
+/**
+ * Handles the "Define Board" menu. Prompts the user for dimensions, validates them,
+ * and initializes the global board variables.
+ *
+ * @return The next menu state (MENU_DEFINIR_NAVIOS on success, or back to MAIN/SAIR).
+ */
 fun menuDefinirTabuleiro():Int {
     println("\n> > Batalha Naval < <\n")
     println("Defina o tamanho do tabuleiro:")
@@ -724,7 +900,12 @@ fun menuDefinirTabuleiro():Int {
     return MENU_DEFINIR_TABULEIRO
 }
 
-//TODO Legenda
+/**
+ * Handles the "Define Ships" menu. Guides the human player through placing each of their ships on the board.
+ * Also populates the computer's board.
+ *
+ * @return The next menu state (MAIN or SAIR).
+ */
 fun menuDefinirNavios(): Int {
     val mapa = obtemMapa(tabuleiroHumano,true)
     for (linha in 0 until mapa.size) {println(mapa[linha])}
@@ -744,7 +925,7 @@ fun menuDefinirNavios(): Int {
                         null -> {println("!!! Coordenadas invalidas, tente novamente")}
                         else -> {
                             when (percorrerNavios) {
-                                0 -> {
+                                0 -> { // Submarine
                                     if (insereNavioSimples(tabuleiroHumano,coordenadasReais.first,coordenadasReais.second,1)) {
                                         insereNavioSimples(tabuleiroHumano,coordenadasReais.first,coordenadasReais.second,1)
                                         val mapa = obtemMapa(tabuleiroHumano,true)
@@ -752,7 +933,7 @@ fun menuDefinirNavios(): Int {
                                         navios[percorrerNavios] = navios[percorrerNavios] - 1
                                     }
                                 }
-                                else -> {
+                                else -> { // Other ships
                                     var orientacao = ""
                                     do {
                                         println("Insira a orientacao do navio:\nOrientacao? (N, S, E, O)")
@@ -761,8 +942,8 @@ fun menuDefinirNavios(): Int {
                                             "-1" -> return MENU_PRINCIPAL
                                             "0" -> return SAIR
                                             else -> { if (orientacao != "N" && orientacao != "S" && orientacao != "O" && orientacao != "E") {
-                                                    println("!!! Orientacao invalida, tente novamente")
-                                                    }
+                                                println("!!! Orientacao invalida, tente novamente")
+                                            }
                                             }
                                         }
                                     } while (orientacao != "N" && orientacao != "S" && orientacao != "O" && orientacao != "E")
@@ -780,7 +961,7 @@ fun menuDefinirNavios(): Int {
             }
         }
     }
-    val arrInt = Array<Int>(1) { 1 }
+    val arrInt = Array<Int>(1) { 1 } // Dummy array
     preencheTabuleiroComputador(criaTabuleiroVazio(numLinhas,numColunas),arrInt)
     println("Pretende ver o mapa gerado para o Computador? (S/N)")
     val resposta = readln()
@@ -794,7 +975,12 @@ fun menuDefinirNavios(): Int {
     }
 }
 
-//TODO Legenda
+/**
+ * Handles the main "Play Game" loop. Alternates turns between the human and computer,
+ * processing shots and displaying results until one player wins.
+ *
+ * @return The next menu state (MAIN or SAIR).
+ */
 fun menuJogar():Int {
     if (tabuleiroHumano.size == 0){
         println("!!! Tem que primeiro definir o tabuleiro do jogo, tente novamente")
@@ -814,30 +1000,29 @@ fun menuJogar():Int {
                 else -> {
                     val tiroReal = processaCoordenadas(tiroInserido,numLinhas,numColunas)
                     when (tiroReal) {
-                        null -> println()
+                        null -> println() // Invalid coordinate, loop repeats
                         else -> {
                             val textos = arrayOf("Agua.","Navio ao fundo!")
-                            lancarTiro(tabuleiroComputador,tabuleiroPalpitesDoHumano,tiroReal)
-                            navioCompleto(tabuleiroComputador,tiroReal.first,tiroReal.second)
+                            val resultadoTiro = lancarTiro(tabuleiroComputador,tabuleiroPalpitesDoHumano,tiroReal)
                             var ondeAcertou = ""
                             when {
                                 navioCompleto(tabuleiroPalpitesDoHumano,tiroReal.first,tiroReal.second) -> {
                                     ondeAcertou += " ${textos[1]}"
                                 }
                             }
-                            println(">>> HUMANO >>>${lancarTiro(tabuleiroComputador,tabuleiroPalpitesDoHumano,tiroReal)}$ondeAcertou")
-                            val tiroComputador = geraTiroComputador(tabuleiroPalpitesDoComputador)
-                            if (!venceu(tabuleiroPalpitesDoHumano)) {
-                                lancarTiro(tabuleiroHumano,tabuleiroPalpitesDoComputador,Pair(tiroComputador.first,tiroComputador.second))
+                            println(">>> HUMANO >>>${resultadoTiro}$ondeAcertou")
+
+                            if (!venceu(tabuleiroPalpitesDoHumano)) { // Check if human won before computer shoots
+                                val tiroComputador = geraTiroComputador(tabuleiroPalpitesDoComputador)
+                                val resultadoTiroComputador = lancarTiro(tabuleiroHumano,tabuleiroPalpitesDoComputador,Pair(tiroComputador.first,tiroComputador.second))
                                 var ondeAcertouComputador = ""
                                 when {
                                     navioCompleto(tabuleiroPalpitesDoComputador,tiroComputador.first,tiroComputador.second) -> {
                                         ondeAcertouComputador += " ${textos[1]}"
                                     }
                                 }
-                                println("Computador lancou tiro para a posicao (${tiroComputador.first},${tiroComputador.second})\n" +
-                                        ">>> COMPUTADOR >>>${lancarTiro(tabuleiroHumano,tabuleiroPalpitesDoComputador,
-                                            Pair(tiroComputador.first,tiroComputador.second))}$ondeAcertouComputador")
+                                println("Computador lancou tiro para a posicao (${tiroComputador.first},${alfabeto[tiroComputador.second -1]})\n" +
+                                        ">>> COMPUTADOR >>>${resultadoTiroComputador}$ondeAcertouComputador")
                             }
                         }
                     }
@@ -864,7 +1049,12 @@ fun menuJogar():Int {
     return MENU_PRINCIPAL
 }
 
-//TODO Legenda
+/**
+ * Handles the "Read File" menu. Prompts for a filename and loads the
+ * game state (all four boards) from it.
+ *
+ * @return The next menu state (MAIN or SAIR).
+ */
 fun menuLerFicheiro():Int {
     println("Introduza o nome do ficheiro (ex: jogo.txt)")
     val nomeFicheiro = readln()
@@ -889,7 +1079,12 @@ fun menuLerFicheiro():Int {
     }
 }
 
-//TODO Legenda
+/**
+ * Handles the "Save File" menu. Prompts for a filename and saves
+ * the current game state to it.
+ *
+ * @return The next menu state (MAIN or SAIR).
+ */
 fun menuGravarFicheiro():Int {
     if (tabuleiroHumano.size == 0){
         println("!!! Tem que primeiro definir o tabuleiro do jogo, tente novamente")
@@ -908,6 +1103,10 @@ fun menuGravarFicheiro():Int {
     }
 }
 
+/**
+ * The main entry point of the application.
+ * Runs the menu-driven game loop (state machine).
+ */
 fun main() {
     var menuActual = MENU_PRINCIPAL
     while (true) {
